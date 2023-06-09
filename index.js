@@ -1,5 +1,6 @@
 const express = require("express");
 var cors = require("cors");
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -28,6 +29,13 @@ async function run() {
     const allData = client.db("artDB").collection("allInfo");
     const cartCollection = client.db("artDB").collection("carts");
 
+
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+      res.send({token});
+    })
+
     // user collection
     app.get('/users', async(req, res) => {
       const result = await userCollection.find().toArray();
@@ -47,6 +55,33 @@ async function run() {
       res.send(result);
     })
 
+// admin role
+    app.patch("/users/admin/:id", async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateDoc = {
+        $set: {
+          role: `admin`
+        },
+      };
+      
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+// instructor role
+    app.patch("/users/instructor/:id", async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateDoc = {
+        $set: {
+          role: `instructor`
+        },
+      };
+
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
 
     // home collection
     app.get("/allInfo", async (req, res) => {
