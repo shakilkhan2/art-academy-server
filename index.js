@@ -24,15 +24,36 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
+    const userCollection = client.db("artDB").collection("users");
     const allData = client.db("artDB").collection("allInfo");
     const cartCollection = client.db("artDB").collection("carts");
+
+    // user collection
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const query = {email: user.email}
+      const existingUser = await userCollection.findOne(query);
+      console.log(existingUser)
+      if(existingUser){
+        return res.send({message: 'user already exists'})
+      }
+      const result = await  userCollection.insertOne(user);
+      res.send(result);
+    })
+
 
     // home collection
     app.get("/allInfo", async (req, res) => {
       const result = await allData.find().toArray();
       res.send(result);
     });
+
 
     // cart collection
     app.get("/carts", async (req, res) => {
@@ -47,7 +68,7 @@ async function run() {
 
     app.post("/carts", async (req, res) => {
       const course = req.body;
-      console.log(course);
+      // console.log(course);
       const result = await cartCollection.insertOne(course);
       res.send(result);
     });
