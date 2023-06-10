@@ -51,7 +51,7 @@ async function run() {
 
     app.post('/jwt', (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '2h'})
       res.send({token});
     })
 
@@ -75,6 +75,20 @@ async function run() {
     })
 
 // admin role
+
+app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+  const email = req.params.email;
+
+if(req.decoded.email !== email){
+  res.send({admin: false})
+}
+
+  const query = {email: email}
+  const user = await userCollection.findOne(query);
+  const result = {admin: user?.role === 'admin'}
+  res.send(result);
+})
+
     app.patch("/users/admin/:id", async(req, res) => {
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)};
