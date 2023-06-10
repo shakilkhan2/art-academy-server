@@ -53,6 +53,7 @@ async function run() {
     const allData = client.db("artDB").collection("allInfo");
     const cartCollection = client.db("artDB").collection("carts");
     const newClassCollection = client.db("artDB").collection("added_class");
+    const paymentCollection = client.db("artDB").collection("payments");
 
 // jwt
     app.post("/jwt", (req, res) => {
@@ -198,7 +199,7 @@ async function run() {
     });
 
 // create payment intent
-app.post('/create-payment-intent', async (req, res) => {
+app.post('/create-payment-intent', verifyJWT, async (req, res) => {
 const {price} = req.body;
 const amount = price*100;
 const paymentIntent = await stripe.paymentIntents.create({
@@ -211,6 +212,17 @@ res.send({
 })
 })
 
+// payment Api
+app.post('/payments', verifyJWT, async (req, res) => {
+  const payment = req.body;
+  const insertResult = await paymentCollection.insertOne(payment);
+
+const query = {_id: {$in: payment.cartsItems.map(id => new ObjectId(id))}}
+const deleteResult = await cartCollection.deleteMany(query)
+
+
+  res.send({insertResult, deleteResult});
+})
 
 
 // new class collection
