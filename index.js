@@ -241,6 +241,22 @@ async function run() {
       res.send(result);
     });
 
+    //
+    app.patch("/added_class/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedClass = req.body;
+
+      const updateDoc = {
+        $set: {
+          status: updatedClass.status,
+        },
+      };
+
+      const result = await newClassCollection.updateOne(filter, updateDoc);
+      res.send({ modifiedCount: result.modifiedCount });
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
