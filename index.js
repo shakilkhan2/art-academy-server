@@ -48,7 +48,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const userCollection = client.db("artDB").collection("users");
     const allData = client.db("artDB").collection("allInfo");
     const cartCollection = client.db("artDB").collection("carts");
@@ -230,7 +230,7 @@ async function run() {
 
     // new class collection
     app.get("/added_class", async (req, res) => {
-      const result = await newClassCollection.find().toArray();
+      const result = await newClassCollection.find().limit(6).toArray();
       res.send(result);
     });
 
@@ -241,7 +241,7 @@ async function run() {
       res.send(result);
     });
 
-    //
+    //update status
     app.patch("/added_class/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -249,12 +249,25 @@ async function run() {
 
       const updateDoc = {
         $set: {
-          status: updatedClass.status,
+          ...updatedClass,
         },
       };
 
       const result = await newClassCollection.updateOne(filter, updateDoc);
       res.send({ modifiedCount: result.modifiedCount });
+    });
+
+    // update info
+    app.patch("/update_class/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const classList = await newClassCollection.findOne(query);
+      console.log(classList);
+      const updatedData = { ...req.body };
+      const result = await newClassCollection.updateOne(query, {
+        $set: updatedData,
+      });
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
